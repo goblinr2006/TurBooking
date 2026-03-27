@@ -1,90 +1,30 @@
-// ========== ДАННЫЕ ==========
-const tours = [
-    {
-        id: 1,
-        title: "Обзорная экскурсия по Москве",
-        description: "Увлекательная прогулка по центру Москвы. Посетим Красную площадь, Александровский сад, храм Христа Спасителя.",
-        price: 1500,
-        duration: "3 часа",
-        location: "Москва",
-        maxPeople: 20,
-        availableSeats: 15,
-        date: "2026-04-15T10:00:00",
-        image: "moscow"
-    },
-    {
-        id: 2,
-        title: "Эрмитаж - сокровища России",
-        description: "Экскурсия по одному из величайших музеев мира. Шедевры живописи, скульптуры и прикладного искусства.",
-        price: 2000,
-        duration: "2 часа",
-        location: "Санкт-Петербург",
-        maxPeople: 10,
-        availableSeats: 8,
-        date: "2026-04-16T11:00:00",
-        image: "hermitage"
-    },
-    {
-        id: 3,
-        title: "Казанский Кремль",
-        description: "Знакомство с историей и архитектурой главной достопримечательности Татарстана.",
-        price: 1200,
-        duration: "2.5 часа",
-        location: "Казань",
-        maxPeople: 15,
-        availableSeats: 12,
-        date: "2026-04-17T09:00:00",
-        image: "kazan"
-    },
-    {
-        id: 4,
-        title: "Сочи Парк",
-        description: "Экскурсия в самый большой тематический парк России. Аттракционы и развлечения для всей семьи.",
-        price: 2500,
-        duration: "4 часа",
-        location: "Сочи",
-        maxPeople: 25,
-        availableSeats: 20,
-        date: "2026-04-18T12:00:00",
-        image: "sochi"
-    },
-    {
-        id: 5,
-        title: "Петродворец - русский Версаль",
-        description: "Прогулка по дворцово-парковому ансамблю с знаменитыми фонтанами.",
-        price: 1800,
-        duration: "3 часа",
-        location: "Санкт-Петербург",
-        maxPeople: 12,
-        availableSeats: 10,
-        date: "2026-04-19T10:00:00",
-        image: "petergof"
-    },
-    {
-        id: 6,
-        title: "Золотое кольцо России",
-        description: "Путешествие по древним городам: Сергиев Посад, Переславль-Залесский, Ростов Великий.",
-        price: 3500,
-        duration: "12 часов",
-        location: "Москва",
-        maxPeople: 8,
-        availableSeats: 6,
-        date: "2026-04-20T08:00:00",
-        image: "goldenring"
+// ========== АВТОРИЗАЦИЯ ==========
+function renderAuthSection() {
+    const authSection = document.getElementById('authSection');
+    if (!authSection) return;
+    
+    if (currentUser) {
+        authSection.innerHTML = `
+            <div class="user-info">
+                <i class="fas fa-user-circle"></i>
+                <span>${currentUser.username}</span>
+                <button onclick="logout()" class="btn-logout">Выйти</button>
+            </div>
+        `;
+    } else {
+        authSection.innerHTML = `
+            <div class="auth-buttons">
+                <a href="login.html" class="btn btn-outline">Войти</a>
+                <a href="register.html" class="btn btn-primary">Регистрация</a>
+            </div>
+        `;
     }
-];
+}
 
-// ========== ПОЛЬЗОВАТЕЛИ ==========
-let users = JSON.parse(localStorage.getItem('users')) || [];
-let currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
+function checkAuth() {
+    renderAuthSection();
+}
 
-// ========== КОРЗИНА ==========
-let cart = JSON.parse(localStorage.getItem('cart')) || [];
-
-// ========== БРОНИРОВАНИЯ ==========
-let bookings = JSON.parse(localStorage.getItem('bookings')) || [];
-
-// ========== ФУНКЦИИ АВТОРИЗАЦИИ ==========
 function register(event) {
     event.preventDefault();
     
@@ -105,16 +45,15 @@ function register(event) {
     
     const newUser = {
         id: Date.now(),
-        username,
-        email,
-        password
+        username: username,
+        email: email,
+        password: password,
+        registeredAt: new Date().toISOString()
     };
     
     users.push(newUser);
-    localStorage.setItem('users', JSON.stringify(users));
-    
     currentUser = newUser;
-    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+    saveAllData();
     
     alert('Регистрация успешна!');
     window.location.href = 'index.html';
@@ -127,7 +66,7 @@ function login(event) {
     const username = document.getElementById('loginUsername').value;
     const password = document.getElementById('loginPassword').value;
     
-    const user = users.find(u => (u.username === username || u.email === username) && u.password === password);
+    const user = users.find(u => u.username === username && u.password === password);
     
     if (!user) {
         alert('Неверное имя пользователя или пароль!');
@@ -135,7 +74,7 @@ function login(event) {
     }
     
     currentUser = user;
-    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+    saveAllData();
     
     alert('Вход выполнен!');
     window.location.href = 'index.html';
@@ -144,24 +83,8 @@ function login(event) {
 
 function logout() {
     currentUser = null;
-    localStorage.removeItem('currentUser');
+    saveAllData();
     window.location.href = 'index.html';
-}
-
-function checkAuth() {
-    const authButtons = document.getElementById('authButtons');
-    const userInfo = document.getElementById('userInfo');
-    
-    if (currentUser) {
-        if (authButtons) authButtons.style.display = 'none';
-        if (userInfo) {
-            userInfo.style.display = 'flex';
-            document.getElementById('username').textContent = currentUser.username;
-        }
-    } else {
-        if (authButtons) authButtons.style.display = 'flex';
-        if (userInfo) userInfo.style.display = 'none';
-    }
 }
 
 // ========== ФУНКЦИИ ТУРОВ ==========
@@ -187,7 +110,9 @@ function filterTours() {
     const maxPrice = parseInt(document.getElementById('maxPrice')?.value) || Infinity;
     
     const filtered = tours.filter(tour => {
-        const matchSearch = tour.title.toLowerCase().includes(search) || tour.description.toLowerCase().includes(search);
+        const matchSearch = tour.title.toLowerCase().includes(search) || 
+                           (tour.shortDescription && tour.shortDescription.toLowerCase().includes(search)) ||
+                           (tour.description && tour.description.toLowerCase().includes(search));
         const matchLocation = !location || tour.location === location;
         const matchPrice = tour.price >= minPrice && tour.price <= maxPrice;
         return matchSearch && matchLocation && matchPrice;
@@ -203,14 +128,16 @@ function createTourCard(tour) {
     const date = new Date(tour.date);
     const formattedDate = date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
     
+    const shortDesc = tour.shortDescription || tour.description.substring(0, 100);
+    
     return `
-        <div class="tour-card">
+        <div class="tour-card" onclick="goToTourDetail(${tour.id})">
             <div class="tour-image">
-                <i class="fas fa-map-marker-alt"></i>
+                <img src="${tour.imageUrl}" alt="${tour.title}" style="width: 100%; height: 100%; object-fit: cover;">
             </div>
             <div class="tour-content">
                 <h3 class="tour-title">${tour.title}</h3>
-                <p class="tour-description">${tour.description.substring(0, 100)}...</p>
+                <p class="tour-description">${shortDesc.length > 100 ? shortDesc.substring(0, 100) + '...' : shortDesc}</p>
                 <div class="tour-info">
                     <span><i class="fas fa-map-pin"></i> ${tour.location}</span>
                     <span><i class="fas fa-clock"></i> ${tour.duration}</span>
@@ -218,245 +145,97 @@ function createTourCard(tour) {
                     <span><i class="fas fa-users"></i> ${tour.availableSeats} мест</span>
                 </div>
                 <div class="tour-price">${tour.price.toLocaleString()} ₽</div>
-                <div class="tour-actions">
-                    <button onclick="addToCart(${tour.id})" class="btn btn-primary btn-small">В корзину</button>
-                    <button onclick="bookNow(${tour.id})" class="btn btn-outline btn-small">Забронировать</button>
+                <button class="btn btn-primary" onclick="event.stopPropagation(); bookTour(${tour.id})">Забронировать</button>
+            </div>
+        </div>
+    `;
+}
+
+// ========== ФУНКЦИЯ ПЕРЕХОДА НА СТРАНИЦУ ПОДРОБНОСТЕЙ ==========
+function goToTourDetail(tourId) {
+    window.location.href = `tour-detail.html?id=${tourId}`;
+}
+
+// ========== ФУНКЦИЯ ЗАГРУЗКИ ПОДРОБНОЙ ИНФОРМАЦИИ О ТУРЕ ==========
+function loadTourDetail() {
+    const container = document.getElementById('tourDetail');
+    if (!container) return;
+    
+    // Получаем ID тура из URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const tourId = parseInt(urlParams.get('id'));
+    
+    const tour = tours.find(t => t.id === tourId);
+    
+    if (!tour) {
+        container.innerHTML = `
+            <div class="tour-detail-error">
+                <i class="fas fa-exclamation-triangle"></i>
+                <p>Тур не найден</p>
+                <a href="tours.html" class="btn btn-primary">Вернуться к турам</a>
+            </div>
+        `;
+        return;
+    }
+    
+    const date = new Date(tour.date);
+    const formattedDate = date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    
+    container.innerHTML = `
+        <div class="tour-detail-content">
+            <div class="tour-detail-image">
+                <img src="${tour.imageUrl}" alt="${tour.title}">
+            </div>
+            <div class="tour-detail-info">
+                <h1>${tour.title}</h1>
+                <div class="tour-detail-meta">
+                    <span><i class="fas fa-map-pin"></i> ${tour.location}</span>
+                    <span><i class="fas fa-clock"></i> ${tour.duration}</span>
+                    <span><i class="fas fa-calendar"></i> ${formattedDate}</span>
+                    <span><i class="fas fa-users"></i> Осталось мест: ${tour.availableSeats} из ${tour.maxPeople}</span>
+                </div>
+                
+                <div class="tour-detail-section">
+                    <h3><i class="fas fa-info-circle"></i> О туре</h3>
+                    <p>${tour.description || tour.shortDescription || 'Увлекательная экскурсия с профессиональным гидом.'}</p>
+                </div>
+                
+                <div class="tour-detail-section">
+                    <h3><i class="fas fa-map-marker-alt"></i> Место встречи</h3>
+                    <p>${tour.meetingPoint || 'Уточняется при бронировании (гид свяжется с вами)'}</p>
+                </div>
+                
+                <div class="tour-detail-grid">
+                    <div class="tour-detail-section">
+                        <h3><i class="fas fa-check-circle"></i> Включено</h3>
+                        <p>${tour.includes || '✓ Услуги профессионального гида\n✓ Экскурсионное обслуживание\n✓ Аудиосистема (при необходимости)'}</p>
+                    </div>
+                    <div class="tour-detail-section">
+                        <h3><i class="fas fa-times-circle"></i> Не включено</h3>
+                        <p>${tour.notIncludes || '✗ Трансфер до места встречи\n✗ Питание и напитки\n✗ Личные расходы'}</p>
+                    </div>
+                </div>
+                
+                <div class="tour-detail-price">
+                    <div class="price">${tour.price.toLocaleString()} ₽</div>
+                    <div class="price-note">за человека</div>
+                </div>
+                
+                <div class="tour-detail-buttons">
+                    <button class="btn btn-primary btn-large" onclick="bookTour(${tour.id})">
+                        <i class="fas fa-ticket-alt"></i> Забронировать сейчас
+                    </button>
+                    <a href="tours.html" class="btn btn-outline btn-large">← Назад к турам</a>
                 </div>
             </div>
         </div>
     `;
 }
 
-// ========== ФУНКЦИИ КОРЗИНЫ ==========
-function addToCart(tourId) {
+// ========== ФУНКЦИИ БРОНИРОВАНИЯ ==========
+function bookTour(tourId) {
     if (!currentUser) {
-        if (confirm('Для бронирования необходимо войти. Перейти на страницу входа?')) {
-            window.location.href = 'login.html';
-        }
-        return;
-    }
-    
-    const tour = tours.find(t => t.id === tourId);
-    if (!tour) return;
-    
-    const existingItem = cart.find(item => item.tourId === tourId);
-    
-    if (existingItem) {
-        existingItem.quantity++;
-    } else {
-        cart.push({
-            tourId: tour.id,
-            title: tour.title,
-            price: tour.price,
-            location: tour.location,
-            quantity: 1
-        });
-    }
-    
-    localStorage.setItem('cart', JSON.stringify(cart));
-    updateCartCount();
-    alert('Тур добавлен в корзину!');
-}
-
-function updateCartCount() {
-    const cartCountElements = document.querySelectorAll('#cartCount');
-    const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-    cartCountElements.forEach(el => {
-        if (el) el.textContent = totalItems;
-    });
-}
-
-function loadCart() {
-    const container = document.getElementById('cartItems');
-    const summaryContainer = document.getElementById('cartSummary');
-    
-    if (!container) return;
-    
-    if (cart.length === 0) {
-        container.innerHTML = '<p style="text-align: center;">Корзина пуста. <a href="tours.html">Выбрать туры</a></p>';
-        if (summaryContainer) summaryContainer.innerHTML = '';
-        return;
-    }
-    
-    let total = 0;
-    container.innerHTML = cart.map(item => {
-        const itemTotal = item.price * item.quantity;
-        total += itemTotal;
-        return `
-            <div class="cart-item">
-                <div class="cart-item-info">
-                    <h3>${item.title}</h3>
-                    <p>${item.location}</p>
-                    <p>${item.price.toLocaleString()} ₽ × ${item.quantity}</p>
-                </div>
-                <div>
-                    <button onclick="updateQuantity(${item.tourId}, ${item.quantity - 1})" class="btn btn-outline btn-small">-</button>
-                    <span style="margin: 0 10px;">${item.quantity}</span>
-                    <button onclick="updateQuantity(${item.tourId}, ${item.quantity + 1})" class="btn btn-outline btn-small">+</button>
-                    <button onclick="removeFromCart(${item.tourId})" class="btn btn-danger btn-small">Удалить</button>
-                </div>
-                <div class="cart-item-price">${itemTotal.toLocaleString()} ₽</div>
-            </div>
-        `;
-    }).join('');
-    
-    if (summaryContainer) {
-        summaryContainer.innerHTML = `
-            <div class="cart-total">Итого: ${total.toLocaleString()} ₽</div>
-            <button onclick="checkout()" class="btn btn-primary">Оформить бронирование</button>
-        `;
-    }
-}
-
-function updateQuantity(tourId, newQuantity) {
-    if (newQuantity <= 0) {
-        removeFromCart(tourId);
-        return;
-    }
-    
-    const item = cart.find(i => i.tourId === tourId);
-    if (item) {
-        item.quantity = newQuantity;
-        localStorage.setItem('cart', JSON.stringify(cart));
-        updateCartCount();
-        loadCart();
-    }
-}
-
-function removeFromCart(tourId) {
-    cart = cart.filter(item => item.tourId !== tourId);
-    localStorage.setItem('cart', JSON.stringify(cart));
-    updateCartCount();
-    loadCart();
-}
-
-function checkout() {
-    if (cart.length === 0) {
-        alert('Корзина пуста!');
-        return;
-    }
-    
-    if (!currentUser) {
-        alert('Необходимо войти в систему');
-        window.location.href = 'login.html';
-        return;
-    }
-    
-    let total = 0;
-    cart.forEach(item => {
-        total += item.price * item.quantity;
-    });
-    
-    if (confirm(`Оформить бронирование на сумму ${total.toLocaleString()} ₽?`)) {
-        const newBookings = cart.map(item => ({
-            id: Date.now() + Math.random(),
-            userId: currentUser.id,
-            tourId: item.tourId,
-            title: item.title,
-            location: item.location,
-            price: item.price,
-            quantity: item.quantity,
-            total: item.price * item.quantity,
-            date: new Date().toISOString(),
-            status: 'pending'
-        }));
-        
-        bookings.push(...newBookings);
-        localStorage.setItem('bookings', JSON.stringify(bookings));
-        
-        cart = [];
-        localStorage.setItem('cart', JSON.stringify(cart));
-        updateCartCount();
-        
-        alert('Бронирование успешно оформлено! Перейдите к оплате в разделе "Мои бронирования"');
-        window.location.href = 'booking.html';
-    }
-}
-
-// ========== ФУНКЦИИ БРОНИРОВАНИЙ ==========
-function loadBookings() {
-    const container = document.getElementById('bookingsList');
-    if (!container) return;
-    
-    const userBookings = bookings.filter(b => b.userId === currentUser?.id);
-    
-    if (userBookings.length === 0) {
-        container.innerHTML = '<p style="text-align: center;">У вас пока нет бронирований. <a href="tours.html">Выбрать тур</a></p>';
-        return;
-    }
-    
-    container.innerHTML = userBookings.map(booking => {
-        const bookingDate = new Date(booking.date);
-        const formattedDate = bookingDate.toLocaleDateString('ru-RU');
-        
-        let statusText = '';
-        let statusClass = '';
-        
-        switch(booking.status) {
-            case 'pending':
-                statusText = 'Ожидает оплаты';
-                statusClass = 'status-pending';
-                break;
-            case 'paid':
-                statusText = 'Оплачен';
-                statusClass = 'status-paid';
-                break;
-            case 'cancelled':
-                statusText = 'Отменен';
-                statusClass = 'status-cancelled';
-                break;
-        }
-        
-        return `
-            <div class="booking-card">
-                <div>
-                    <h3>${booking.title}</h3>
-                    <p><i class="fas fa-map-pin"></i> ${booking.location}</p>
-                    <p>Количество: ${booking.quantity} чел.</p>
-                    <p>Сумма: ${booking.total.toLocaleString()} ₽</p>
-                    <p>Дата бронирования: ${formattedDate}</p>
-                </div>
-                <div style="text-align: right;">
-                    <span class="booking-status ${statusClass}">${statusText}</span>
-                    ${booking.status === 'pending' ? `
-                        <div style="margin-top: 10px;">
-                            <button onclick="payBooking(${booking.id})" class="btn btn-primary btn-small">Оплатить</button>
-                            <button onclick="cancelBooking(${booking.id})" class="btn btn-danger btn-small">Отменить</button>
-                        </div>
-                    ` : ''}
-                </div>
-            </div>
-        `;
-    }).join('');
-}
-
-function payBooking(bookingId) {
-    const booking = bookings.find(b => b.id === bookingId);
-    if (booking && booking.userId === currentUser?.id) {
-        if (confirm(`Оплатить ${booking.title} на сумму ${booking.total.toLocaleString()} ₽?`)) {
-            booking.status = 'paid';
-            localStorage.setItem('bookings', JSON.stringify(bookings));
-            alert('Оплата прошла успешно!');
-            loadBookings();
-        }
-    }
-}
-
-function cancelBooking(bookingId) {
-    const booking = bookings.find(b => b.id === bookingId);
-    if (booking && booking.userId === currentUser?.id) {
-        if (confirm('Отменить бронирование?')) {
-            booking.status = 'cancelled';
-            localStorage.setItem('bookings', JSON.stringify(bookings));
-            alert('Бронирование отменено');
-            loadBookings();
-        }
-    }
-}
-
-function bookNow(tourId) {
-    if (!currentUser) {
-        if (confirm('Для бронирования необходимо войти. Перейти на страницу входа?')) {
+        if (confirm('Для бронирования необходимо войти в систему. Перейти на страницу входа?')) {
             window.location.href = 'login.html';
         }
         return;
@@ -470,14 +249,22 @@ function bookNow(tourId) {
     
     const numQuantity = parseInt(quantity);
     if (isNaN(numQuantity) || numQuantity < 1) {
-        alert('Введите корректное количество');
+        alert('Пожалуйста, введите корректное количество человек (от 1 до 10)');
         return;
     }
     
     if (numQuantity > tour.availableSeats) {
-        alert(`Доступно только ${tour.availableSeats} мест`);
+        alert(`Извините, доступно только ${tour.availableSeats} мест. Пожалуйста, уменьшите количество.`);
         return;
     }
+    
+    const phone = prompt('Введите ваш контактный телефон (для связи):', '+7');
+    if (!phone || phone.length < 5) {
+        alert('Пожалуйста, введите корректный номер телефона');
+        return;
+    }
+    
+    const comment = prompt('Есть ли у вас особые пожелания? (необязательно)', '');
     
     const newBooking = {
         id: Date.now(),
@@ -489,12 +276,185 @@ function bookNow(tourId) {
         quantity: numQuantity,
         total: tour.price * numQuantity,
         date: new Date().toISOString(),
-        status: 'pending'
+        status: 'pending',
+        phone: phone,
+        comment: comment || ''
     };
     
     bookings.push(newBooking);
-    localStorage.setItem('bookings', JSON.stringify(bookings));
     
-    alert('Бронирование успешно создано! Перейдите к оплате в разделе "Мои бронирования"');
-    window.location.href = 'booking.html';
+    // Обновляем доступные места
+    tour.availableSeats -= numQuantity;
+    
+    saveAllData();
+    
+    alert(`✅ Бронирование успешно создано!\n\n📌 Тур: ${tour.title}\n👥 Количество: ${numQuantity} чел.\n💰 Сумма: ${newBooking.total.toLocaleString()} ₽\n📞 Телефон: ${phone}\n\nПерейдите в "Мои бронирования" для оплаты.`);
+    
+    window.location.href = 'bookings.html';
 }
+
+function payBooking(bookingId) {
+    const booking = bookings.find(b => b.id === bookingId);
+    if (booking && booking.userId === currentUser?.id) {
+        if (confirm(`Оплатить "${booking.title}" на сумму ${booking.total.toLocaleString()} ₽?`)) {
+            booking.status = 'paid';
+            saveAllData();
+            alert(`✅ Оплата прошла успешно!\n\nТур: ${booking.title}\nСумма: ${booking.total.toLocaleString()} ₽\nСпасибо за покупку!`);
+            loadBookings();
+        }
+    }
+}
+
+function cancelBooking(bookingId) {
+    const booking = bookings.find(b => b.id === bookingId);
+    if (booking && booking.userId === currentUser?.id) {
+        if (confirm(`Отменить бронирование "${booking.title}"?\n\nСумма возврата: ${booking.total.toLocaleString()} ₽`)) {
+            // Возвращаем места
+            const tour = tours.find(t => t.id === booking.tourId);
+            if (tour) {
+                tour.availableSeats += booking.quantity;
+            }
+            booking.status = 'cancelled';
+            saveAllData();
+            alert('❌ Бронирование отменено. Средства будут возвращены в течение 3-5 рабочих дней.');
+            loadBookings();
+        }
+    }
+}
+
+function loadBookings() {
+    const container = document.getElementById('bookingsList');
+    if (!container) return;
+    
+    if (!currentUser) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-lock"></i>
+                <p>Войдите в систему, чтобы просмотреть бронирования</p>
+                <a href="login.html" class="btn btn-primary">Войти</a>
+            </div>
+        `;
+        return;
+    }
+    
+    const userBookings = bookings.filter(b => b.userId === currentUser.id);
+    
+    if (userBookings.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-ticket-alt"></i>
+                <p>У вас пока нет бронирований</p>
+                <a href="tours.html" class="btn btn-primary">Выбрать тур</a>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = userBookings.map(booking => {
+        const bookingDate = new Date(booking.date);
+        const formattedDate = bookingDate.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        
+        let statusText = '';
+        let statusClass = '';
+        let statusIcon = '';
+        
+        switch(booking.status) {
+            case 'pending':
+                statusText = 'Ожидает оплаты';
+                statusClass = 'status-pending';
+                statusIcon = '⏳';
+                break;
+            case 'paid':
+                statusText = 'Оплачен';
+                statusClass = 'status-paid';
+                statusIcon = '✅';
+                break;
+            case 'cancelled':
+                statusText = 'Отменен';
+                statusClass = 'status-cancelled';
+                statusIcon = '❌';
+                break;
+        }
+        
+        return `
+            <div class="booking-card">
+                <div class="booking-info">
+                    <h3>${booking.title}</h3>
+                    <div class="booking-details">
+                        <span><i class="fas fa-map-pin"></i> ${booking.location}</span>
+                        <span><i class="fas fa-user-friends"></i> ${booking.quantity} чел.</span>
+                        <span><i class="fas fa-ruble-sign"></i> ${booking.total.toLocaleString()} ₽</span>
+                        <span><i class="fas fa-phone"></i> ${booking.phone || 'Не указан'}</span>
+                        <span><i class="fas fa-calendar-alt"></i> ${formattedDate}</span>
+                    </div>
+                    ${booking.comment ? `<p class="booking-comment"><i class="fas fa-comment"></i> ${booking.comment}</p>` : ''}
+                </div>
+                <div class="booking-status-area">
+                    <span class="booking-status ${statusClass}">${statusIcon} ${statusText}</span>
+                    ${booking.status === 'pending' ? `
+                        <div class="booking-actions">
+                            <button onclick="payBooking(${booking.id})" class="btn btn-primary btn-small">
+                                <i class="fas fa-credit-card"></i> Оплатить
+                            </button>
+                            <button onclick="cancelBooking(${booking.id})" class="btn btn-danger btn-small">
+                                <i class="fas fa-times"></i> Отменить
+                            </button>
+                        </div>
+                    ` : ''}
+                    ${booking.status === 'paid' ? `
+                        <div class="booking-paid-note">
+                            <i class="fas fa-check-circle"></i> Оплачено
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// ========== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ==========
+function updateCartCount() {
+    const cartCountElements = document.querySelectorAll('#cartCount');
+    const totalItems = cart ? cart.reduce((sum, item) => sum + item.quantity, 0) : 0;
+    cartCountElements.forEach(el => {
+        if (el) el.textContent = totalItems;
+    });
+}
+
+// ========== ИНИЦИАЛИЗАЦИЯ СТРАНИЦ ==========
+// Функция для отладки (можно вызвать в консоли)
+function showAllData() {
+    console.log('=== ВСЕ ПОЛЬЗОВАТЕЛИ ===');
+    console.table(users);
+    console.log('=== ТЕКУЩИЙ ПОЛЬЗОВАТЕЛЬ ===');
+    console.log(currentUser);
+    console.log('=== ВСЕ ТУРЫ ===');
+    console.table(tours);
+    console.log('=== ВСЕ БРОНИРОВАНИЯ ===');
+    console.table(bookings);
+}
+
+// Функция для очистки всех данных (для тестирования)
+function clearAllData() {
+    if (confirm('ВНИМАНИЕ! Это удалит всех пользователей, все бронирования и выйдет из аккаунта. Продолжить?')) {
+        users = [];
+        bookings = [];
+        currentUser = null;
+        saveAllData();
+        alert('Все данные очищены!');
+        window.location.href = 'index.html';
+    }
+}
+
+// Добавляем глобальные функции для доступа из HTML
+window.register = register;
+window.login = login;
+window.logout = logout;
+window.bookTour = bookTour;
+window.payBooking = payBooking;
+window.cancelBooking = cancelBooking;
+window.filterTours = filterTours;
+window.goToTourDetail = goToTourDetail;
+window.loadTourDetail = loadTourDetail;
+window.showAllData = showAllData;
+window.clearAllData = clearAllData;
