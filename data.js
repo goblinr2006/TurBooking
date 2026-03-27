@@ -13,7 +13,7 @@ const tours = [
         maxPeople: 20,
         availableSeats: 15,
         date: "2026-04-15T10:00:00",
-        imageUrl: "https://share.google/33cY3ED2iJ5KEgJe9"
+        imageUrl: "moscow.jpg"
     },
     {
         id: 2,
